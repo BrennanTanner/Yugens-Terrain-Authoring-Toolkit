@@ -12,6 +12,7 @@ var tools : Array[MarchingSquaresTool] = [
 	# Terrain visuals tools
 	preload("uid://c3rtgj17vcsk6"), # Grass mask tool
 	preload("uid://bhf01bmk6l3gv"), # Vertex paint tool
+	preload("uid://c5n8v9y4k7q2"), # Populate tool
 	# General plugin tools
 	preload("uid://ktb4desoyt1j"), # Debug brush tool
 	preload("uid://ups2hlmespdm"), # Chunk manager tool

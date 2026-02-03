@@ -1,3 +1,4 @@
+@icon("res://addons/MarchingSquaresTerrain/editor/icons/3D_planters_icon.png")
 @tool
 extends MultiMeshInstance3D
 class_name MarchingSquaresGrassPlanter
@@ -18,7 +19,7 @@ func setup(chunk: MarchingSquaresTerrainChunk, redo: bool = true):
 		push_error("SETUP FAILED - no chunk or terrain system found for GrassPlanter")
 		return
 	
-	if (redo and multimesh) or !multimesh:
+	if (redo and multimesh) or not multimesh:
 		multimesh = MultiMesh.new()
 	multimesh.instance_count = 0
 	

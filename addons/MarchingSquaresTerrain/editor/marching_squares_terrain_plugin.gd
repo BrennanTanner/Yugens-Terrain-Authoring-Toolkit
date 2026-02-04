@@ -83,6 +83,11 @@ var falloff : bool = true
 
 var should_mask_grass : bool = false
 
+# Used to reference populator data in the populator tool
+var current_populator : MarchingSquaresPopulator = null
+
+var remove_flowers : bool = false
+
 # Currently selected preset for vertex textures (DOES change the global terrain)
 var current_texture_preset : MarchingSquaresTexturePreset = EMPTY_TEXTURE_PRESET.duplicate():
 	set(value):
@@ -325,7 +330,7 @@ func handle_mouse(camera: Camera3D, event: InputEvent) -> int:
 	var shift_held := Input.is_key_pressed(KEY_SHIFT)
 	
 	# If not in a settings mode, perform terrain raycast
-	if mode in [TerrainToolMode.BRUSH, TerrainToolMode.GRASS_MASK, TerrainToolMode.LEVEL, TerrainToolMode.SMOOTH, TerrainToolMode.BRIDGE, TerrainToolMode.VERTEX_PAINTING, TerrainToolMode.DEBUG_BRUSH, TerrainToolMode.CHUNK_MANAGEMENT]:
+	if mode in [TerrainToolMode.BRUSH, TerrainToolMode.GRASS_MASK, TerrainToolMode.LEVEL, TerrainToolMode.SMOOTH, TerrainToolMode.BRIDGE, TerrainToolMode.VERTEX_PAINTING, TerrainToolMode.DEBUG_BRUSH, TerrainToolMode.POPULATE, TerrainToolMode.CHUNK_MANAGEMENT]:
 		var draw_position
 		var draw_area_hovered : bool = false
 		
@@ -393,9 +398,9 @@ func handle_mouse(camera: Camera3D, event: InputEvent) -> int:
 					bridge_start_pos = brush_position
 				if mode in [TerrainToolMode.SMOOTH] and falloff == false:
 					falloff = true
-				if mode in [TerrainToolMode.GRASS_MASK, TerrainToolMode.DEBUG_BRUSH] and falloff == true:
+				if mode in [TerrainToolMode.GRASS_MASK, TerrainToolMode.DEBUG_BRUSH, TerrainToolMode.POPULATE] and falloff == true:
 					falloff = false
-				if mode in [TerrainToolMode.GRASS_MASK, TerrainToolMode.VERTEX_PAINTING, TerrainToolMode.DEBUG_BRUSH] and flatten == true:
+				if mode in [TerrainToolMode.GRASS_MASK, TerrainToolMode.VERTEX_PAINTING, TerrainToolMode.DEBUG_BRUSH, TerrainToolMode.POPULATE] and flatten == true:
 					flatten = false
 				if mode in [TerrainToolMode.LEVEL, TerrainToolMode.CHUNK_MANAGEMENT] and Input.is_key_pressed(KEY_CTRL):
 					height = brush_position.y
@@ -412,7 +417,7 @@ func handle_mouse(camera: Camera3D, event: InputEvent) -> int:
 					is_making_bridge = false
 				if is_drawing:
 					is_drawing = false
-					if mode in [TerrainToolMode.GRASS_MASK, TerrainToolMode.LEVEL, TerrainToolMode.BRIDGE, TerrainToolMode.DEBUG_BRUSH]:
+					if mode in [TerrainToolMode.GRASS_MASK, TerrainToolMode.LEVEL, TerrainToolMode.BRIDGE, TerrainToolMode.DEBUG_BRUSH, TerrainToolMode.POPULATE]:
 						draw_pattern(terrain)
 						current_draw_pattern.clear()
 					if mode in [TerrainToolMode.SMOOTH, TerrainToolMode.VERTEX_PAINTING]:
@@ -449,7 +454,7 @@ func handle_mouse(camera: Camera3D, event: InputEvent) -> int:
 		
 		if draw_area_hovered and event is InputEventMouseMotion:
 			brush_position = draw_position
-			if is_drawing and mode in [TerrainToolMode.SMOOTH, TerrainToolMode.VERTEX_PAINTING, TerrainToolMode.GRASS_MASK]:
+			if is_drawing and mode in [TerrainToolMode.SMOOTH, TerrainToolMode.VERTEX_PAINTING, TerrainToolMode.GRASS_MASK, TerrainToolMode.POPULATE]:
 				draw_pattern(terrain)
 				current_draw_pattern.clear()
 		
@@ -670,6 +675,9 @@ func draw_pattern(terrain: MarchingSquaresTerrain):
 					restore_value_cc = chunk.get_color_1(draw_cell_coords)
 				draw_value = vertex_color_0
 				draw_value_cc = vertex_color_1
+			elif mode == TerrainToolMode.POPULATE:
+				if current_populator == null:
+					return
 			elif mode == TerrainToolMode.DEBUG_BRUSH:
 				var g_pos := chunk.to_global(Vector3(float(draw_cell_coords.x), chunk.get_height(draw_cell_coords), float(draw_cell_coords.y)))
 				var normal := get_cell_normal(chunk, draw_cell_coords)
@@ -783,6 +791,12 @@ func draw_pattern(terrain: MarchingSquaresTerrain):
 		undo_redo.create_action("terrain grass mask draw")
 		undo_redo.add_do_method(self, "draw_grass_mask_pattern_action", terrain, pattern)
 		undo_redo.add_undo_method(self, "draw_grass_mask_pattern_action", terrain, restore_pattern)
+		undo_redo.commit_action()
+	elif mode == TerrainToolMode.POPULATE:
+		var action_name := "terrain flower mask draw" if current_populator is MarchingSquaresFlowerPlanter else "terrain vegetation mask draw"
+		undo_redo.create_action(action_name)
+		undo_redo.add_do_method(self, "draw_populator_mask_pattern_action", current_populator, remove_flowers, pattern)
+		undo_redo.add_undo_method(self, "draw_populator_mask_pattern_action", current_populator, remove_flowers, restore_pattern)
 		undo_redo.commit_action()
 	else:
 		# Handle BRUSH, LEVEL, SMOOTH, BRIDGE modes
@@ -1132,6 +1146,11 @@ func apply_composite_pattern_action(terrain: MarchingSquaresTerrain, patterns: D
 #endregion
 
 #region vertex/texture setters and getters
+
+# Stores chunk and mask data for FlowerPlanters and VegetationPlanters directly in the instance
+func draw_populator_mask_pattern_action(terrain: MarchingSquaresTerrain, pattern: Dictionary , is_erase: bool) -> void:
+	pass ## TODO: Complete this function
+
 
 func _set_vertex_colors(vc_idx: int) -> void:
 	match vc_idx:

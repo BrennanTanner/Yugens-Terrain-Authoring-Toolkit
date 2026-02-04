@@ -147,7 +147,7 @@ enum StorageMode {
 		animation_fps = clamp(value, 0, 30)
 		var grass_mat := grass_mesh.material as ShaderMaterial
 		grass_mat.set_shader_parameter("fps", clamp(value, 0, 30))
-@export_custom(PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE) var grass_subdivisions : int = 3:
+@export_custom(PROPERTY_HINT_RANGE, "0, 4", PROPERTY_USAGE_STORAGE) var grass_subdivisions : int = 3:
 	set(value):
 		grass_subdivisions = value
 		for chunk: MarchingSquaresTerrainChunk in chunks.values():

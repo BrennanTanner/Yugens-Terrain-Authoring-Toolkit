@@ -544,6 +544,7 @@ func _enter_tree() -> void:
 	_deferred_enter_tree.call_deferred()
 
 
+
 func _initialize_data_directory() -> void:
 	var copy_from_dir := ""
 	if EngineWrapper.instance.is_editor() and not data_directory.is_empty() and not MSTDataHandler.is_data_directory_unique(self):
@@ -569,11 +570,21 @@ func _deferred_enter_tree() -> void:
 			if chunk._data_dirty:
 				return
 	chunks.clear()
-	for chunk in get_children():
-		if chunk is MarchingSquaresTerrainChunk:
-			chunks[chunk.chunk_coords] = chunk
-			chunk.terrain_system = self
-			chunk.grass_planter = null
+	
+	# Apply all persisted textures/colors to this terrain's unique shader materials
+	# This is needed because _init() creates fresh duplicated materials that don't have
+	# the terrain's saved texture values - only the base resource defaults
+	force_batch_update()
+
+	# Populate chunks dictionary from scene children
+	chunks.clear()
+	for child in get_children():
+		if child is MarchingSquaresTerrainChunk:
+			chunks[child.chunk_coords] = child
+			child.terrain_system = self
+			child.grass_planter = null
+		elif child is MarchingSquaresPopulator: # Prep the populators
+			child.terrain_system = self
 	
 	# Load external data if storage was previously initialized
 	if _storage_initialized:
@@ -582,16 +593,14 @@ func _deferred_enter_tree() -> void:
 		# Auto-migrate embedded data to external storage (editor only)
 		MSTDataHandler.migrate_to_external_storage(self)
 	
-	# Initialize all chunks (regenerate mesh/grass from loaded data)
+	# Initialize all chunks and populators (regenerate meshes from loaded data)
 	for chunk : MarchingSquaresTerrainChunk in chunks.values():
 		chunk.initialize_terrain(true)
-		
-	# Apply all persisted textures/colors to this terrain's unique shader materials
-	# This is needed because _init() creates fresh duplicated materials that don't have
-	# the terrain's saved texture values - only the base resource defaults
-	force_batch_update()
-	grass_size = grass_size
-	
+	for child in get_children():
+		if child is MarchingSquaresPopulator:
+			child.rebuild_cell_data()
+			if child is MarchingSquaresFlowerPlanter:
+				child.regenerate_flowers()
 	load_finished.emit()
 
 

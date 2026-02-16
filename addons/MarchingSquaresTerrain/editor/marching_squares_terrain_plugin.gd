@@ -422,10 +422,10 @@ func handle_mouse(camera: Camera3D, event: InputEvent) -> int:
 					is_making_bridge = false
 				if is_drawing:
 					is_drawing = false
-					if mode in [TerrainToolMode.GRASS_MASK, TerrainToolMode.LEVEL, TerrainToolMode.BRIDGE, TerrainToolMode.DEBUG_BRUSH, TerrainToolMode.POPULATE]:
+					if mode != TerrainToolMode.SMOOTH:
 						draw_pattern(terrain)
 						current_draw_pattern.clear()
-					if mode in [TerrainToolMode.SMOOTH, TerrainToolMode.VERTEX_PAINTING]:
+					else:
 						current_draw_pattern.clear()
 				if is_setting:
 					is_setting = false
@@ -459,7 +459,7 @@ func handle_mouse(camera: Camera3D, event: InputEvent) -> int:
 		
 		if draw_area_hovered and event is InputEventMouseMotion:
 			brush_position = draw_position
-			if is_drawing and mode in [TerrainToolMode.SMOOTH, TerrainToolMode.VERTEX_PAINTING, TerrainToolMode.GRASS_MASK, TerrainToolMode.POPULATE]:
+			if is_drawing and mode == TerrainToolMode.SMOOTH:
 				draw_pattern(terrain)
 				current_draw_pattern.clear()
 		

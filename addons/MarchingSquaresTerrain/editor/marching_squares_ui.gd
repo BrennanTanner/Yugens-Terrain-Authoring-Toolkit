@@ -6,7 +6,7 @@ class_name MarchingSquaresUI
 const TOOLBAR : Script = preload("uid://3d77dnetkeik")
 const TOOL_ATTRIBUTES : Script = preload("uid://buxevb44hutjm")
 const TEXTURE_SETTINGS : Script = preload("uid://blvx0jk6wxk5p")
-const POPULATOR_SETTINGS : Script = preload("uid://3mi36g1r2oy2")
+const POPULATOR_SETTINGS : Script = preload("uid://4by1rhveqjr1")
 
 #region texture setting property maps
 # Property names that map directly to terrain properties with same name

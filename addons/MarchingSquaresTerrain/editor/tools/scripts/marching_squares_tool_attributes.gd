@@ -719,7 +719,6 @@ func _apply_mode_to_all_chunks() -> void:
 	for child in plugin.current_terrain_node.get_children():
 		if child is MarchingSquaresTerrainChunk:
 			_change_chunk_mode(child, selected_chunk.merge_mode)
-	selected_chunk = chunk
 
 
 func _on_populator_selected(p_populator: String) -> void:
